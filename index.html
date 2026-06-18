@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Família dos Santos</title>
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container{
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+        }
+
+        h1{
+            text-align:center;
+        }
+
+        input,
+        textarea,
+        select{
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            margin-bottom:15px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            padding:15px;
+            background:#2e7d32;
+            color:white;
+            border:none;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        button:hover{
+            background:#1b5e20;
+        }
+
+        .msg{
+            margin-top:20px;
+            text-align:center;
+            font-weight:bold;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🌳 Família dos Santos</h1>
+
+<p>
+Estamos construindo a árvore genealógica da Família dos Santos.
+Preencha suas informações para ajudar a preservar nossa história.
+</p>
+
+<form id="cadastro">
+
+<label>Nome Completo</label>
+<input type="text" id="nome" required>
+
+<label>Sexo</label>
+<select id="sexo">
+    <option value="">Selecione</option>
+    <option>Masculino</option>
+    <option>Feminino</option>
+</select>
+
+<label>Data de Nascimento</label>
+<input type="date" id="nascimento">
+
+<label>Cidade Atual</label>
+<input type="text" id="cidade">
+
+<label>Nome do Pai</label>
+<input type="text" id="pai">
+
+<label>Nome da Mãe</label>
+<input type="text" id="mae">
+
+<label>Profissão</label>
+<input type="text" id="profissao">
+
+<label>Conte um pouco sobre você</label>
+<textarea id="obs" rows="5"></textarea>
+
+<button type="submit">
+Enviar Cadastro
+</button>
+
+</form>
+
+<div class="msg" id="mensagem"></div>
+
+</div>
+
+<script type="module">
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+const supabase = createClient(
+    'https://wtptdpsdryikfxfgozsy.supabase.co',
+    'sb_publishable_heVo7tZmsnhegJq_NVGqXw_jzeYETOX'
+)
+
+document.getElementById('cadastro')
+.addEventListener('submit', async (e)=>{
+
+    e.preventDefault()
+
+    const dados = {
+
+        nome_completo:
+            document.getElementById('nome').value,
+
+        data_nascimento:
+            document.getElementById('nascimento').value || null,
+
+        nome_pai:
+            document.getElementById('pai').value,
+
+        nome_mae:
+            document.getElementById('mae').value,
+
+        cidade_atual:
+            document.getElementById('cidade').value,
+
+        observacoes:
+`
+Sexo: ${document.getElementById('sexo').value}
+
+Profissão: ${document.getElementById('profissao').value}
+
+Biografia:
+${document.getElementById('obs').value}
+`
+    }
+
+    const { error } = await supabase
+        .from('sugestoes')
+        .insert([dados])
+
+    const msg = document.getElementById('mensagem')
+
+    if(error){
+
+        console.error(error)
+
+        msg.innerHTML =
+        "❌ Erro ao enviar cadastro."
+
+        return
+    }
+
+    msg.innerHTML =
+    "✅ Cadastro enviado com sucesso!"
+
+    document.getElementById('cadastro').reset()
+
+})
+
+</script>
+
+</body>
+</html>
