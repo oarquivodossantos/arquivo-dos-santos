@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Família dos Santos</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:20px}
+.container{max-width:850px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.step{display:none}
+.step.active{display:block}
+input,select,textarea{width:100%;padding:10px;margin:6px 0 14px;box-sizing:border-box}
+button{padding:12px 18px;border:none;border-radius:6px;cursor:pointer}
+.next,.submitBtn{background:#2e7d32;color:#fff}
+.prev{background:#ccc}
+.progress{height:10px;background:#ddd;border-radius:10px;margin-bottom:20px}
+.bar{height:10px;background:#2e7d32;border-radius:10px;width:16%}
+.city-row{display:flex;gap:8px;margin-bottom:8px}
+.city-row input{flex:1}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌳 Família dos Santos</h1>
+<div class="progress"><div class="bar" id="bar"></div></div>
+
+<form id="cadastro">
+
+<div class="step active">
+<h3>Etapa 1 - Responsável</h3>
+<label>Seu Nome</label>
+<input id="enviado_por" required>
+<label>E-mail</label>
+<input id="email" type="email">
+</div>
+
+<div class="step">
+<h3>Etapa 2 - Dados da Pessoa</h3>
+<input id="nome" placeholder="Nome Completo" required>
+<input id="apelido" placeholder="Apelido">
+<input id="nome_solteiro" placeholder="Nome de solteiro(a)">
+<select id="sexo">
+<option>Masculino</option>
+<option>Feminino</option>
+<option>Prefiro não informar</option>
+</select>
+<input id="nascimento" type="date">
+</div>
+
+<div class="step">
+<h3>Etapa 3 - Nascimento</h3>
+<input id="pais_nascimento" placeholder="País de nascimento">
+<input id="estado_nascimento" placeholder="Estado / Província">
+<input id="cidade_nascimento" placeholder="Cidade de nascimento">
+</div>
+
+<div class="step">
+<h3>Etapa 4 - Situação</h3>
+<select id="situacao">
+<option value="vivo">Vivo</option>
+<option value="falecido">Falecido</option>
+</select>
+<div id="falecimentoBox" class="hidden">
+<input id="data_falecimento" type="date">
+<input id="pais_falecimento" placeholder="País de falecimento">
+<input id="estado_falecimento" placeholder="Estado de falecimento">
+<input id="cidade_falecimento" placeholder="Cidade de falecimento">
+</div>
+</div>
+
+<div class="step">
+<h3>Etapa 5 - Família</h3>
+<select id="estado_civil">
+<option>Solteiro(a)</option>
+<option>Casado(a)</option>
+<option>União Estável</option>
+<option>Separado(a)</option>
+<option>Divorciado(a)</option>
+<option>Viúvo(a)</option>
+</select>
+<div id="conjugeBox" class="hidden">
+<input id="conjuge" placeholder="Nome do cônjuge/ex">
+</div>
+<input id="pai" placeholder="Nome do Pai">
+<input id="mae" placeholder="Nome da Mãe">
+</div>
+
+<div class="step">
+<h3>Etapa 6 - Histórico</h3>
+<input id="cidade_atual" placeholder="Cidade atual">
+<div id="cidades"></div>
+<button type="button" onclick="addCity()">+ Adicionar Cidade</button><br><br>
+<input id="profissao" placeholder="Profissão">
+<textarea id="historia" placeholder="História da pessoa"></textarea>
+<textarea id="obs" placeholder="Observações"></textarea>
+</div>
+
+<div style="display:flex;justify-content:space-between;margin-top:20px">
+<button type="button" class="prev" onclick="prevStep()">Anterior</button>
+<button type="button" class="next" id="nextBtn" onclick="nextStep()">Próximo</button>
+<button type="submit" class="submitBtn hidden" id="submitBtn">Enviar Cadastro</button>
+</div>
+</form>
+
+<div id="msg"></div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+const supabase = createClient(
+'https://wtptdpsdryikfxfgozsy.supabase.co',
+'sb_publishable_fhk0tL7Pg4JkUWcrFrOQlA_nY2HbeX2'
+)
+
+let current=0
+const steps=document.querySelectorAll('.step')
+
+window.nextStep=function(){
+ if(current<steps.length-1){steps[current].classList.remove('active');current++;steps[current].classList.add('active');updateUI()}
+}
+window.prevStep=function(){
+ if(current>0){steps[current].classList.remove('active');current--;steps[current].classList.add('active');updateUI()}
+}
+
+function updateUI(){
+ document.getElementById('bar').style.width=((current+1)/steps.length*100)+'%'
+ document.getElementById('nextBtn').classList.toggle('hidden',current===steps.length-1)
+ document.getElementById('submitBtn').classList.toggle('hidden',current!==steps.length-1)
+}
+
+document.getElementById('situacao').addEventListener('change',e=>{
+ document.getElementById('falecimentoBox').classList.toggle('hidden',e.target.value!=='falecido')
+})
+
+document.getElementById('estado_civil').addEventListener('change',e=>{
+ document.getElementById('conjugeBox').classList.toggle('hidden',e.target.value==='Solteiro(a)')
+})
+
+window.addCity=function(){
+ const div=document.createElement('div')
+ div.className='city-row'
+ div.innerHTML='<input class="cidade-morou" placeholder="Cidade onde morou">'
+ document.getElementById('cidades').appendChild(div)
+}
+
+document.getElementById('cadastro').addEventListener('submit', async(e)=>{
+ e.preventDefault()
+
+ const cidades=[...document.querySelectorAll('.cidade-morou')].map(x=>x.value).filter(Boolean)
+
+ const dados={
+  apelido:apelido.value,
+  nome_solteiro:nome_solteiro.value,
+  nascimento:{pais:pais_nascimento.value,estado:estado_nascimento.value,cidade:cidade_nascimento.value},
+  falecimento:{pais:pais_falecimento.value,estado:estado_falecimento.value,cidade:cidade_falecimento.value},
+  conjuge:conjuge?.value||'',
+  profissao:profissao.value,
+  cidades_morou:cidades,
+  historia:historia.value,
+  observacoes:obs.value
+ }
+
+ const {error}=await supabase.from('sugestoes').insert([{
+  nome_completo:nome.value,
+  data_nascimento:nascimento.value||null,
+  nome_pai:pai.value,
+  nome_mae:mae.value,
+  cidade_atual:cidade_atual.value,
+  observacoes:obs.value,
+  sexo:sexo.value,
+  estado_civil:estado_civil.value,
+  falecido:situacao.value==='falecido',
+  data_falecimento:data_falecimento.value||null,
+  enviado_por:enviado_por.value,
+  email:email.value,
+  dados:dados
+ }])
+
+ document.getElementById('msg').innerHTML = error ? '❌ Erro: '+error.message : '✅ Cadastro enviado com sucesso!'
+ if(!error) document.getElementById('cadastro').reset()
+})
+</script>
+</body>
+</html>
